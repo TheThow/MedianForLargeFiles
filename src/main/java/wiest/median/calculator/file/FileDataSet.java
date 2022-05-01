@@ -38,19 +38,21 @@ public class FileDataSet {
 
     private int totalCacheEntryCount = 0;
 
-    public FileDataSet(String filedir, int maxDataInMemoryKb) {
-        File dir = new File(filedir);
+    public FileDataSet(String fileDir, int maxDataInMemoryKb) {
+        File dir = new File(fileDir);
         if (!dir.exists()) {
-            dir.mkdir();
+            if (!dir.mkdir()) {
+                throw new FileDataSetException("Cannot create data dir");
+            }
         }
 
-        long entryCount = maxDataInMemoryKb * 1024L / Double.BYTES / MAGIC_MEMORY_SPLIT_FACTOR;
+        long entryCount = maxDataInMemoryKb * 1024L / Double.BYTES;
         if (entryCount > Integer.MAX_VALUE) {
             throw new IllegalStateException("Cannot store more entries than an Integer can index for now");
         }
 
-        maxCacheOrFileEntryCount = (int) entryCount;
-        containers.add(new FileDataSetContainer(filedir, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
+        maxCacheOrFileEntryCount = (int) entryCount / MAGIC_MEMORY_SPLIT_FACTOR;
+        containers.add(new FileDataSetContainer(fileDir, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
         LOG.info("Creating dataset that can cache {} doubles in memory", maxCacheOrFileEntryCount);
     }
 
