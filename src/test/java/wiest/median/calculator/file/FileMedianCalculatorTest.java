@@ -79,7 +79,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
 
     @Test
     void testMedianWithLargeInput() {
-        // About 78 times the data that can be kept in memory
+        // About 78 times the data that can be cached in memory before file access
         var numbers = IntStream.range(0, 500_000 + 1)
                 .asDoubleStream().boxed().collect(Collectors.toList());
         Collections.shuffle(numbers);
