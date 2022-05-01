@@ -23,6 +23,7 @@ Run with
 ## Current optimization potential
 * The application will allocate more memory than specified in the parameter - since we are using arraylists for in-memory storage it's possible that they expand to a size larger than needed
     * Currently each file maintains its own cache which causes this issue - a potential solution would be to have one global cache that is easier to manage memory wise
+    * So for now treat that memory limit more as a guideline :)
 * The data written to the file system is not compressed - thus requiring as much disk space as the input file is in size.
 
 ## Dependencies
