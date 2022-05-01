@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+application {
+    mainClass = 'wiest.median.Application'
+}
+
+group 'wiest.median'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'ch.qos.logback:logback-classic:1.2.11'
+    // To have lists with primitive types
+    implementation 'it.unimi.dsi:fastutil:8.5.8'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+test {
+    useJUnitPlatform()
+}
