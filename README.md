@@ -29,3 +29,5 @@ Run with
 ## Dependencies
 * ch.qos.logback = for logging
 * it.unimi.dsi:fastutil = for lists with primitive data types
+
+Requires at least Java 15
