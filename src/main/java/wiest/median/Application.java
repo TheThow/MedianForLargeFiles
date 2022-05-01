@@ -23,7 +23,7 @@ public class Application {
         int memory = args.length > 1 ? Integer.parseInt(args[1]) : 8192;
 
         var dataSource = new NumberFileReader(filename);
-        MedianCalculator calc = new FileMedianCalculator("data", memory * 1024);
+        MedianCalculator calc = new FileMedianCalculator("./storagedata", memory * 1024);
         calc.loadSource(dataSource);
 
         System.out.printf("Median of file %s is %f\n", filename, calc.calculateMedian());

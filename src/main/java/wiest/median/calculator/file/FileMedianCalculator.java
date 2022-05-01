@@ -7,8 +7,8 @@ public class FileMedianCalculator implements MedianCalculator {
 
     private final FileDataSet dataSet;
 
-    public FileMedianCalculator(String filedir, int maxDataInMemoryKb) {
-        dataSet = new FileDataSet(filedir, maxDataInMemoryKb);
+    public FileMedianCalculator(String fileDir, int maxDataInMemoryKb) {
+        dataSet = new FileDataSet(fileDir, maxDataInMemoryKb);
     }
 
     @Override
