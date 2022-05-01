@@ -63,20 +63,20 @@ public class FileDataSet {
             storeLargestContainer();
         }
 
-        var matchingContainer = containers.stream()
-                .filter(ds -> ds.getInclusiveMin() <= number && number <= ds.getInclusiveMax())
-                .findAny()
-                .orElseThrow(() -> new IllegalStateException(String.format("No dataset exists for value %f", number)));
-
+        var matchingContainer = getMatchingContainer(number);
         matchingContainer.add(number);
         totalCacheEntryCount++;
     }
 
-    private void storeLargestContainer() {
-        var maxDataContainer = containers.stream()
-                .max(Comparator.comparing(FileDataSetContainer::getCacheNumberCount))
-                .orElseThrow(() -> new IllegalStateException("Cache not initialized"));
+    private FileDataSetContainer getMatchingContainer(double number) {
+        return containers.stream()
+                .filter(ds -> ds.getInclusiveMin() <= number && number <= ds.getInclusiveMax())
+                .findAny()
+                .orElseThrow(() -> new IllegalStateException(String.format("No dataset exists for value %f", number)));
+    }
 
+    private void storeLargestContainer() {
+        var maxDataContainer = getLargestContainer();
         totalCacheEntryCount -= maxDataContainer.getCacheNumberCount();
 
         if (maxDataContainer.getTotalEntryCount() <= maxCacheOrFileEntryCount) {
@@ -86,6 +86,12 @@ public class FileDataSet {
         }
 
         LOG.debug("Reduced cache to: {} entries", totalCacheEntryCount);
+    }
+
+    private FileDataSetContainer getLargestContainer() {
+        return containers.stream()
+                .max(Comparator.comparing(FileDataSetContainer::getCacheNumberCount))
+                .orElseThrow(() -> new IllegalStateException("Cache not initialized"));
     }
 
     private void splitContainer(FileDataSetContainer targetContainer) {
