@@ -48,7 +48,7 @@ public class FileDataSet {
 
         long entryCount = maxDataInMemoryKb * 1024L / Double.BYTES;
         if (entryCount > Integer.MAX_VALUE) {
-            throw new IllegalStateException("Cannot store more entries than an Integer can index for now");
+            throw new FileDataSetException("Cannot store more entries than an Integer can index for now");
         }
 
         maxCacheOrFileEntryCount = (int) entryCount / MAGIC_MEMORY_SPLIT_FACTOR;

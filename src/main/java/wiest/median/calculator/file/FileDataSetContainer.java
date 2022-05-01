@@ -137,14 +137,14 @@ public class FileDataSetContainer {
                 '}';
     }
 
-    public record ContainerSplitResult(FileDataSetContainer lowerBound, FileDataSetContainer upperBound) {
+    public record ContainerSplitResult(FileDataSetContainer lowerContainer, FileDataSetContainer upperContainer) {
 
         public FileDataSetContainer getLowerContainer() {
-                return lowerBound;
+                return lowerContainer;
             }
 
         public FileDataSetContainer getUpperContainer() {
-                return upperBound;
+                return upperContainer;
             }
     }
 }
