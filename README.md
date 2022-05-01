@@ -10,6 +10,7 @@ Run with
 ```
 [filename] = path to the file to read. A list of doubles is expected with each number in a new line. (see number.txt as example)
 {memory} - OPTIONAL = maximum amount of data to be loaded into memory (Megabytes) - default is 8192
+           NOTE: Due to some overheads you shouldn't set this to more than 50% of your available memory
 ```
 
 ## Implementation
