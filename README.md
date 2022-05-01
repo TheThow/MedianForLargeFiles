@@ -1,7 +1,7 @@
 # MedianForLargeFiles
 Algorithm to calculate the median of a file too large for memory.
 
-It will read the whole input file (one number at a time) and store the values sorted to disk. After it has been fully read it median is retrieved.
+It will read the whole input file (one number at a time) and store the values sorted to disk. After it has been fully read its median is retrieved.
 
 Run with
 ```
