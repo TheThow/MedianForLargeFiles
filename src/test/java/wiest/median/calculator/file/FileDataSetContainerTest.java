@@ -1,50 +1,52 @@
 package wiest.median.calculator.file;
 
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.junit.jupiter.api.Test;
+import wiest.median.calculator.file.FileDataSetContainer;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class FileDataSetContainerTest extends LocalFileTest {
 
 
     @Test
-    void testAddData() {
+    void trackingCacheData() {
         FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -10, 10);
-        container.add(5);
+        container.increaseCacheEntryCount();
 
         assertEquals(1, container.getCacheNumberCount());
-        assertEquals(List.of(5.), container.getAllEntriesSorted());
+    }
+
+    @Test
+    void testInitStoreDataInFiles() {
+        FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -10, 10, DoubleList.of(5));
+
+        assertEquals(List.of(5.), container.getMergedStorageData(DoubleList.of()));
     }
 
     @Test
     void testStoreDataInFiles() {
         FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -10, 10);
-        container.add(5);
-        container.writeToFile();
+        container.mergeAndWriteToFile(DoubleList.of(5.));
 
-        assertEquals(List.of(5.), container.getAllEntriesSorted());
+        assertEquals(List.of(5.), container.getMergedStorageData(DoubleList.of()));
     }
 
     @Test
-    void testCombinedDataFromMemoryAndFile() {
+    void getMergedData() {
         FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -10, 10);
-        container.add(5);
-        container.writeToFile();
-        container.add(2);
+        container.mergeAndWriteToFile(DoubleList.of(5.));
 
-        assertEquals(1, container.getCacheNumberCount());
-        assertEquals(2, container.getTotalEntryCount());
-        assertEquals(List.of(2., 5.), container.getAllEntriesSorted());
+        assertEquals(List.of(5., 10.), container.getMergedStorageData(DoubleList.of(10.)));
     }
 
     @Test
     void testSplitContainerUnevenSize() {
         FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -20, 20);
-        container.add(1);
-        container.add(2);
-        container.add(3);
+        container.mergeAndWriteToFile(DoubleList.of(1., 2., 3.));
+
 
         var result = container.splitInHalf();
         var firstContainer = result.getLowerContainer();
@@ -62,10 +64,7 @@ class FileDataSetContainerTest extends LocalFileTest {
     @Test
     void testSplitContainerEvenSize() {
         FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -20, 20);
-        container.add(1);
-        container.add(2);
-        container.add(3);
-        container.add(4);
+        container.mergeAndWriteToFile(DoubleList.of(1., 2., 3., 4.));
 
         var result = container.splitInHalf();
         var firstContainer = result.getLowerContainer();
@@ -83,13 +82,7 @@ class FileDataSetContainerTest extends LocalFileTest {
     @Test
     void testSplitEqualNumbers() {
         FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -20, 20);
-        container.add(1);
-        container.add(2);
-        container.add(3);
-        container.add(3);
-        container.add(3);
-        container.add(4);
-        container.add(5);
+        container.mergeAndWriteToFile(DoubleList.of(1., 2., 3., 3., 3., 4., 5.));
 
         var result = container.splitInHalf();
         var firstContainer = result.getLowerContainer();

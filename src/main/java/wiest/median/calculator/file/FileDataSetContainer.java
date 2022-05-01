@@ -20,7 +20,7 @@ public class FileDataSetContainer {
     private final double inclusiveMax;
     private final String dir;
 
-    private final DoubleArrayList memoryCache = new DoubleArrayList();
+    private int memoryCacheCount = 0;
     private final File storageFile;
 
     private int fileNumberCount = 0;
@@ -32,7 +32,6 @@ public class FileDataSetContainer {
     public FileDataSetContainer(String dir, double inclusiveMin, double inclusiveMax, DoubleList initData) {
         this.inclusiveMin = inclusiveMin;
         this.inclusiveMax = inclusiveMax;
-        this.memoryCache.addAll(initData);
         this.dir = dir;
 
         storageFile = new File(dir + "/Median_" + UUID.randomUUID());
@@ -44,14 +43,15 @@ public class FileDataSetContainer {
         } catch (IOException e) {
             throw new FileDataSetException("Cannot create local storage file", e);
         }
+        mergeAndWriteToFile(initData);
     }
 
     public int getTotalEntryCount() {
-        return memoryCache.size() + fileNumberCount;
+        return memoryCacheCount + fileNumberCount;
     }
 
     public int getCacheNumberCount() {
-        return memoryCache.size();
+        return memoryCacheCount;
     }
 
     public double getInclusiveMin() {
@@ -62,36 +62,37 @@ public class FileDataSetContainer {
         return inclusiveMax;
     }
 
-    public void add(double number) {
-        if (number < inclusiveMin || number > inclusiveMax) {
-            throw new FileDataSetException(String.format(
-                    "Trying to add a number outside of the datasets bounds! %f in [%f, %f]",
-                    number, inclusiveMin, inclusiveMax));
-        }
-        memoryCache.add(number);
+    public void increaseCacheEntryCount() {
+        memoryCacheCount++;
     }
 
-    public void writeToFile() {
+    public void mergeAndWriteToFile(DoubleList data) {
         try {
             LOG.debug("Writing to file: {}", this);
+
             // TODO: Compress this file to save disk space as numbers can be compressed quite well usually
-            var numbersSorted = getAllEntriesSorted();
-            fileNumberCount = numbersSorted.size();
-            memoryCache.clear();
-            memoryCache.trim();
-            BinIO.storeDoubles(numbersSorted.iterator(), storageFile);
+            var storedData = getMergedStorageData(data);
+            fileNumberCount = storedData.size();
+            BinIO.storeDoubles(storedData.iterator(), storageFile);
+
+            memoryCacheCount = 0;
+
         } catch (IOException e) {
             throw new FileDataSetException("Error during writing dataset to file", e);
         }
     }
 
-    public DoubleList getAllEntriesSorted() {
+    public DoubleList getMergedStorageData(DoubleList data) {
+        // TODO: since fileList is already sorted one could merge memoryCache into fileList in one iteration
+        var storedData = getStoredData();
+        storedData.addAll(data);
+        storedData.sort(DoubleComparators.asDoubleComparator(Double::compareTo));
+        return storedData;
+    }
+
+    private DoubleList getStoredData() {
         try {
-            // TODO: since fileList is already sorted one could easily merge memoryCache into fileList in one iteration
-            var fileList = new DoubleArrayList(BinIO.loadDoubles(storageFile));
-            fileList.addAll(memoryCache);
-            fileList.sort(DoubleComparators.asDoubleComparator(Double::compareTo));
-            return fileList;
+            return new DoubleArrayList(BinIO.loadDoubles(storageFile));
         } catch (IOException e) {
             throw new FileDataSetException("Error during loading dataset from file", e);
         }
@@ -99,7 +100,11 @@ public class FileDataSetContainer {
 
 
     public ContainerSplitResult splitInHalf() {
-        var totalEntries = getAllEntriesSorted();
+        if (memoryCacheCount > 0) {
+            throw new FileDataSetException("Cannot split file with content in memory");
+        }
+
+        var totalEntries = getStoredData();
         if (totalEntries.size() < 2) {
             throw new FileDataSetException("Cannot split file with less than two elements in half");
         }
@@ -132,7 +137,7 @@ public class FileDataSetContainer {
         return "DataSetPart{" +
                 "inclusiveMin=" + inclusiveMin +
                 ", exclusiveMax=" + inclusiveMax +
-                ", cacheNumberCount=" + memoryCache.size() +
+                ", cacheNumberCount=" + memoryCacheCount +
                 ", fileNumberCount=" + fileNumberCount +
                 '}';
     }
@@ -140,11 +145,11 @@ public class FileDataSetContainer {
     public record ContainerSplitResult(FileDataSetContainer lowerContainer, FileDataSetContainer upperContainer) {
 
         public FileDataSetContainer getLowerContainer() {
-                return lowerContainer;
-            }
+            return lowerContainer;
+        }
 
         public FileDataSetContainer getUpperContainer() {
-                return upperContainer;
-            }
+            return upperContainer;
+        }
     }
 }

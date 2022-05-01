@@ -13,8 +13,7 @@ public class Application {
                     Run with arguments [filename] [memory]
                     [memory] = max amount of input data stored in memory in megabytes - default 8192
                     NOTE: \tThere will also be some overhead - a few bytes * (file size / memory size)
-                    \tDue to lack of optimization the actual memory allocated by the jvm
-                    \tcould be significantly more in some cases
+                    \tThis should be at most half of your available memory
                     """);
             System.exit(1);
         }
