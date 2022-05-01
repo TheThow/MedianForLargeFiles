@@ -15,9 +15,9 @@ Run with
 ## Implementation
 * Half of the memory specified is used for an in-memory cache to avoid constant file writes
 * The other half specifies the maximum file size
-* Numbers are written into the cache until it's full and then the cache data is merged with the data stored in files and flushed
+* Numbers are written into the cache until it's full and then a part of the cache data is merged with the data stored in files and flushed
 * Each file stores a certain value range
-* We logically keep track of files and split them into new files once they become too big
+* We logically keep track of files and split them into new files once they become too large
 * When retrieving the median only the file containing the median is loaded from disk
 
 ## Current optimization potential
