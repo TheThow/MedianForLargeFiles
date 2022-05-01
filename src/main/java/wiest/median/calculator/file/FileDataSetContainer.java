@@ -122,8 +122,7 @@ public class FileDataSetContainer {
     }
 
     public void deleteLocalStorage() {
-        var success = storageFile.delete();
-        if (!success) {
+        if (!storageFile.delete()) {
             LOG.error("Could not delete storage file! Name: " + storageFile.getName());
         }
     }
