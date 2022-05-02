@@ -21,11 +21,14 @@ public class Application {
         String filename = args[0];
         int memory = args.length > 1 ? Integer.parseInt(args[1]) : 8192;
 
-        var dataSource = new NumberFileReader(filename);
-        MedianCalculator calc = new FileMedianCalculator("./storagedata", memory * 1024);
-        calc.loadSource(dataSource);
+        MedianCalculator calc = new FileMedianCalculator("./storageData", memory * 1024);
 
-        System.out.printf("Median of file %s is %f\n", filename, calc.calculateMedian());
-        calc.destroy();
+        try {
+            var dataSource = new NumberFileReader(filename);
+            calc.loadSource(dataSource);
+            System.out.printf("Median of file %s is %f\n", filename, calc.calculateMedian());
+        } finally {
+            calc.destroy();
+        }
     }
 }
