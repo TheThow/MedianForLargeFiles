@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 
 
 public class FileDataSetContainer {
@@ -87,11 +89,8 @@ public class FileDataSetContainer {
 
     public DoubleList getAllEntriesSorted() {
         try {
-            // TODO: since fileList is already sorted one could easily merge memoryCache into fileList in one iteration
-            var fileList = new DoubleArrayList(BinIO.loadDoubles(storageFile));
-            fileList.addAll(memoryCache);
-            fileList.sort(DoubleComparators.asDoubleComparator(Double::compareTo));
-            return fileList;
+            var fileList = DoubleArrayList.wrap(BinIO.loadDoubles(storageFile));
+            return DoubleArrayList.wrap(DoubleStream.concat(fileList.doubleStream(), memoryCache.doubleStream()).sorted().toArray());
         } catch (IOException e) {
             throw new FileDataSetException("Error during loading dataset from file", e);
         }
