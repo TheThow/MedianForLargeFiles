@@ -38,5 +38,4 @@ public class FileMedianCalculator implements MedianCalculator {
     public void destroy() {
         dataSet.destroy();
     }
-
 }
