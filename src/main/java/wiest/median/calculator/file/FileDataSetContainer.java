@@ -97,12 +97,8 @@ public class FileDataSetContainer {
         }
     }
 
-    public ContainerSplitResult splitInHalf() {
-        if (memoryCacheCount > 0) {
-            throw new FileDataSetException("Cannot split file with content in memory");
-        }
-
-        var totalEntries = getStoredData();
+    public ContainerSplitResult splitInHalf(DoubleList cacheData) {
+        var totalEntries = getMergedStorageData(cacheData);
         if (totalEntries.size() < 2) {
             throw new FileDataSetException("Cannot split file with less than two elements in half");
         }

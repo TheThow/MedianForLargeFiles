@@ -75,10 +75,11 @@ public class FileDataSet {
 
     private void storeLargestContainer() {
         var maxDataContainer = getLargestContainer();
-        storeCacheToFile(maxDataContainer);
 
         if (maxDataContainer.getTotalEntryCount() > maxCacheOrFileEntryCount) {
-            splitContainer(maxDataContainer);
+            splitAndStoreContainer(maxDataContainer);
+        } else {
+            storeCacheToFile(maxDataContainer);
         }
 
         LOG.debug("Reduced cache to: {} entries", memoryCache.size());
@@ -102,8 +103,9 @@ public class FileDataSet {
                 .iterator());
     }
 
-    private void splitContainer(FileDataSetContainer targetContainer) {
-        var splitResult = targetContainer.splitInHalf();
+    private void splitAndStoreContainer(FileDataSetContainer targetContainer) {
+        var cacheData = getCacheEntriesForContainer(targetContainer);
+        var splitResult = targetContainer.splitInHalf(cacheData);
         var containerIndex = containers.indexOf(targetContainer);
 
         containers.add(containerIndex, splitResult.getUpperContainer());
@@ -113,6 +115,7 @@ public class FileDataSet {
 
         targetContainer.deleteLocalStorage();
         containers.remove(targetContainer);
+        memoryCache.removeAll(cacheData);
     }
 
     public int getTotalSize() {

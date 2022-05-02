@@ -1,5 +1,6 @@
 package wiest.median.calculator.file;
 
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.junit.jupiter.api.Test;
 import wiest.median.calculator.file.FileDataSetContainer;
@@ -48,7 +49,7 @@ class FileDataSetContainerTest extends LocalFileTest {
         container.mergeAndWriteToFile(DoubleList.of(1., 2., 3.));
 
 
-        var result = container.splitInHalf();
+        var result = container.splitInHalf(DoubleArrayList.of());
         var firstContainer = result.getLowerContainer();
         var secondContainer = result.getUpperContainer();
 
@@ -66,7 +67,7 @@ class FileDataSetContainerTest extends LocalFileTest {
         FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -20, 20);
         container.mergeAndWriteToFile(DoubleList.of(1., 2., 3., 4.));
 
-        var result = container.splitInHalf();
+        var result = container.splitInHalf(DoubleArrayList.of());
         var firstContainer = result.getLowerContainer();
         var secondContainer = result.getUpperContainer();
 
@@ -84,7 +85,7 @@ class FileDataSetContainerTest extends LocalFileTest {
         FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -20, 20);
         container.mergeAndWriteToFile(DoubleList.of(1., 2., 3., 3., 3., 4., 5.));
 
-        var result = container.splitInHalf();
+        var result = container.splitInHalf(DoubleArrayList.of());
         var firstContainer = result.getLowerContainer();
         var secondContainer = result.getUpperContainer();
 
@@ -93,6 +94,24 @@ class FileDataSetContainerTest extends LocalFileTest {
         assertEquals(3, firstContainer.getTotalEntryCount());
 
         assertEquals(3, secondContainer.getInclusiveMin());
+        assertEquals(20, secondContainer.getInclusiveMax());
+        assertEquals(4, secondContainer.getTotalEntryCount());
+    }
+
+    @Test
+    void testSplitEqualNumbersWithCache() {
+        FileDataSetContainer container = new FileDataSetContainer(TEST_DATA_DIR, -20, 20);
+        container.mergeAndWriteToFile(DoubleList.of(1., 2., 3., 4., 5.));
+
+        var result = container.splitInHalf(DoubleArrayList.of(6., 7.));
+        var firstContainer = result.getLowerContainer();
+        var secondContainer = result.getUpperContainer();
+
+        assertEquals(-20, firstContainer.getInclusiveMin());
+        assertEquals(4, firstContainer.getInclusiveMax());
+        assertEquals(3, firstContainer.getTotalEntryCount());
+
+        assertEquals(4, secondContainer.getInclusiveMin());
         assertEquals(20, secondContainer.getInclusiveMax());
         assertEquals(4, secondContainer.getTotalEntryCount());
     }
