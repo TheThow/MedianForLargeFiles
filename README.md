@@ -24,6 +24,7 @@ Run with
 ## Current optimization potential
 * The application will allocate more memory than specified in the parameter - copying and sorting could in the worst case increase memory usage by 100%
 * The data written to the file system is not compressed - thus requiring as much disk space as the input file is in size.
+* A few writes to disk can be avoided when splitting files
 
 ## Dependencies
 * ch.qos.logback = for logging

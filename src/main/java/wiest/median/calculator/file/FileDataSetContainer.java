@@ -66,12 +66,12 @@ public class FileDataSetContainer {
         memoryCacheCount++;
     }
 
-    public void mergeAndWriteToFile(DoubleList data) {
+    public void mergeAndWriteToFile(DoubleList dataToMerge) {
         try {
             LOG.debug("Writing to file: {}", this);
 
             // TODO: Compress this file to save disk space as numbers can be compressed quite well usually
-            var storedData = getMergedStorageData(data);
+            var storedData = getMergedStorageData(dataToMerge);
             fileNumberCount = storedData.size();
             BinIO.storeDoubles(storedData.iterator(), storageFile);
 
