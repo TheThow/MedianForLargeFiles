@@ -1,7 +1,6 @@
 package wiest.median.calculator.file;
 
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-import it.unimi.dsi.fastutil.doubles.DoubleComparators;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.io.BinIO;
 import org.slf4j.Logger;
