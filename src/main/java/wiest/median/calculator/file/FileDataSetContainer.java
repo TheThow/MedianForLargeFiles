@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.stream.DoubleStream;
 
 
 public class FileDataSetContainer {
@@ -82,22 +83,20 @@ public class FileDataSetContainer {
         }
     }
 
-    public DoubleList getMergedStorageData(DoubleList data) {
-        // TODO: since fileList is already sorted one could merge memoryCache into fileList in one iteration
-        var storedData = getStoredData();
-        storedData.addAll(data);
-        storedData.sort(DoubleComparators.asDoubleComparator(Double::compareTo));
-        return storedData;
+    public DoubleList getMergedStorageData(DoubleList dataToMerge) {
+        return DoubleArrayList.wrap(
+                DoubleStream.concat(getStoredData().doubleStream(), dataToMerge.doubleStream())
+                .sorted().toArray()
+        );
     }
 
     private DoubleList getStoredData() {
         try {
-            return new DoubleArrayList(BinIO.loadDoubles(storageFile));
+            return DoubleArrayList.wrap(BinIO.loadDoubles(storageFile));
         } catch (IOException e) {
             throw new FileDataSetException("Error during loading dataset from file", e);
         }
     }
-
 
     public ContainerSplitResult splitInHalf() {
         if (memoryCacheCount > 0) {
