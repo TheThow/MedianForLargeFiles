@@ -30,7 +30,8 @@ public class FileDataSet {
 
     private static final Logger LOG = LoggerFactory.getLogger(FileDataSet.class);
 
-    private final int maxCacheOrFileEntryCount;
+    private final int maxCacheEntryCount;
+    private final int maxFileEntryCount;
     private final List<FileDataSetContainer> containers = new ArrayList<>();
     private final DoubleList memoryCache;
 
@@ -47,16 +48,18 @@ public class FileDataSet {
             throw new FileDataSetException("Cannot store more entries than an Integer can index for now");
         }
 
-        maxCacheOrFileEntryCount = (int) entryCount / MAGIC_MEMORY_SPLIT_FACTOR;
+        maxCacheEntryCount = (int) entryCount / MAGIC_MEMORY_SPLIT_FACTOR;
+        maxFileEntryCount = (int) entryCount - maxCacheEntryCount;
         containers.add(new FileDataSetContainer(fileDir, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
-        LOG.info("Creating dataset that can cache {} doubles in memory", maxCacheOrFileEntryCount);
+        LOG.info("Creating dataset that can cache {} doubles in memory and {} in files",
+                maxCacheEntryCount, maxFileEntryCount);
 
-        memoryCache = new DoubleArrayList(maxCacheOrFileEntryCount);
+        memoryCache = new DoubleArrayList(maxCacheEntryCount);
     }
 
     public void addNumber(double number) {
         LOG.trace("Adding number: {}", number);
-        if (memoryCache.size() >= maxCacheOrFileEntryCount-1) {
+        if (memoryCache.size() >= maxCacheEntryCount-1) {
             LOG.debug("Max Cache Count hit - Total entry count: {}", getTotalSize());
             storeLargestContainer();
         }
@@ -78,7 +81,7 @@ public class FileDataSet {
         var cacheData = getCacheEntriesForContainer(maxDataContainer);
         memoryCache.removeAll(cacheData);
 
-        if (maxDataContainer.getTotalEntryCount() > maxCacheOrFileEntryCount) {
+        if (maxDataContainer.getTotalEntryCount() > maxFileEntryCount) {
             splitAndStoreContainer(maxDataContainer, cacheData);
         } else {
             maxDataContainer.mergeAndWriteToFile(cacheData);
