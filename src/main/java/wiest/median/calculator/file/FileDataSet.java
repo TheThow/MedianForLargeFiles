@@ -75,11 +75,13 @@ public class FileDataSet {
 
     private void storeLargestContainer() {
         var maxDataContainer = getLargestContainer();
+        var cacheData = getCacheEntriesForContainer(maxDataContainer);
+        memoryCache.removeAll(cacheData);
 
         if (maxDataContainer.getTotalEntryCount() > maxCacheOrFileEntryCount) {
-            splitAndStoreContainer(maxDataContainer);
+            splitAndStoreContainer(maxDataContainer, cacheData);
         } else {
-            storeCacheToFile(maxDataContainer);
+            maxDataContainer.mergeAndWriteToFile(cacheData);
         }
 
         LOG.debug("Reduced cache to: {} entries", memoryCache.size());
@@ -91,20 +93,13 @@ public class FileDataSet {
                 .orElseThrow(() -> new IllegalStateException("Cache not initialized"));
     }
 
-    private void storeCacheToFile(FileDataSetContainer container) {
-        var entriesToStore = getCacheEntriesForContainer(container);
-        memoryCache.removeAll(entriesToStore);
-        container.mergeAndWriteToFile(entriesToStore);
-    }
-
     private DoubleList getCacheEntriesForContainer(FileDataSetContainer container) {
         return new DoubleArrayList(memoryCache.doubleStream()
                 .filter(d -> d >= container.getInclusiveMin() && d <= container.getInclusiveMax())
                 .iterator());
     }
 
-    private void splitAndStoreContainer(FileDataSetContainer targetContainer) {
-        var cacheData = getCacheEntriesForContainer(targetContainer);
+    private void splitAndStoreContainer(FileDataSetContainer targetContainer, DoubleList cacheData) {
         var splitResult = targetContainer.splitInHalf(cacheData);
         var containerIndex = containers.indexOf(targetContainer);
 
@@ -115,7 +110,6 @@ public class FileDataSet {
 
         targetContainer.deleteLocalStorage();
         containers.remove(targetContainer);
-        memoryCache.removeAll(cacheData);
     }
 
     public int getTotalSize() {
