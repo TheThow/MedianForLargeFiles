@@ -9,7 +9,7 @@ Run with
 ```
 ```
 [filename] = path to the file to read. A list of doubles is expected with each number in a new line. (see number.txt as example)
-{memory} - OPTIONAL = maximum amount of data to be loaded into memory (Megabytes) - default is 8192
+{memory} - OPTIONAL = maximum amount of data to be loaded into memory (Megabytes) - default is 2048
            NOTE: Due to some overheads you shouldn't set this to more than 50% of your available memory
 ```
 
@@ -22,9 +22,7 @@ Run with
 * When retrieving the median only the file containing the median is loaded from disk
 
 ## Current optimization potential
-* The application will allocate more memory than specified in the parameter - since we are using arraylists for in-memory storage it's possible that they expand to a size larger than needed
-    * Currently each file maintains its own cache which causes this issue - a potential solution would be to have one global cache that is easier to manage memory wise
-    * So for now treat that memory limit more as a guideline :)
+* The application will allocate more memory than specified in the parameter - copying and sorting could in the worst case increase memory usage by 100%
 * The data written to the file system is not compressed - thus requiring as much disk space as the input file is in size.
 
 ## Dependencies

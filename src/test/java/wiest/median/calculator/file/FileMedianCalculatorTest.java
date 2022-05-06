@@ -1,6 +1,7 @@
 package wiest.median.calculator.file;
 
 import org.junit.jupiter.api.Test;
+import wiest.median.MedianCalculator;
 import wiest.median.MemoryDataSource;
 import wiest.median.filereader.NumberFileReader;
 
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class FileMedianCalculatorTest extends LocalFileTest {
 
@@ -18,7 +19,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
     @Test
     void testEmpty() {
         var file = new MemoryDataSource(List.of());
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
 
         calc.loadSource(file);
 
@@ -28,7 +29,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
     @Test
     void testSingleNumber() {
         var file = new MemoryDataSource(List.of(1.));
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
 
         calc.loadSource(file);
 
@@ -38,7 +39,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
     @Test
     void testGetMedianEven() {
         var file = new MemoryDataSource(List.of(1.,2.,3.,4.,5., 6.));
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
 
         calc.loadSource(file);
 
@@ -48,7 +49,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
     @Test
     void testGetMedianUneven() {
         var file = new MemoryDataSource(List.of(1.,2.,3.,4.,5.));
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
 
         calc.loadSource(file);
 
@@ -58,7 +59,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
     @Test
     void testMedianWithFileWriting() {
         var file = new MemoryDataSource(IntStream.range(0, 1001).asDoubleStream().boxed().toList());
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
 
         calc.loadSource(file);
 
@@ -70,7 +71,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
         var numbers = IntStream.range(0, 1001).asDoubleStream().boxed().collect(Collectors.toList());
         Collections.shuffle(numbers);
         var file = new MemoryDataSource(numbers);
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
 
         calc.loadSource(file);
 
@@ -84,7 +85,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
                 .asDoubleStream().boxed().collect(Collectors.toList());
         Collections.shuffle(numbers);
         var file = new MemoryDataSource(numbers);
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,100);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,100);
 
         calc.loadSource(file);
 
@@ -96,7 +97,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
         var numbers = IntStream.range(-10, 11).asDoubleStream().boxed().collect(Collectors.toList());
         Collections.shuffle(numbers);
         var file = new MemoryDataSource(numbers);
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
 
         calc.loadSource(file);
 
@@ -106,7 +107,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
     @Test
     void testRandomFile() {
         var file = new NumberFileReader("src/test/resources/random_numbers.txt");
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
 
         calc.loadSource(file);
 
@@ -122,7 +123,7 @@ class FileMedianCalculatorTest extends LocalFileTest {
         dataList.addAll(IntStream.range(-100, 110).asDoubleStream().boxed().toList());
 
         var file = new MemoryDataSource(dataList);
-        FileMedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
+        MedianCalculator calc = new FileMedianCalculator(TEST_DATA_DIR,1);
 
         calc.loadSource(file);
 

@@ -11,16 +11,15 @@ public class Application {
             System.out.println(
                     """
                     Run with arguments [filename] [memory]
-                    [memory] = max amount of input data stored in memory in megabytes - default 8192
+                    [memory] = max amount of input data stored in memory in megabytes - default 2048
                     NOTE: \tThere will also be some overhead - a few bytes * (file size / memory size)
-                    \tDue to lack of optimization the actual memory allocated by the jvm
-                    \tcould be significantly more in some cases
+                    \tThis should be at most half of your available memory
                     """);
             System.exit(1);
         }
 
         String filename = args[0];
-        int memory = args.length > 1 ? Integer.parseInt(args[1]) : 8192;
+        int memory = args.length > 1 ? Integer.parseInt(args[1]) : 2048;
 
         MedianCalculator calc = new FileMedianCalculator("./storageData", memory * 1024);
 

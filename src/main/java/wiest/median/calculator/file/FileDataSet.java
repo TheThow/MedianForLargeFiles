@@ -1,5 +1,7 @@
 package wiest.median.calculator.file;
 
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,12 +17,7 @@ import java.util.List;
  the {@link FileDataSetContainer} class.
  For simplicity, we divide the memory evenly between the file size and the cache size.
 
- Since we are using ArrayLists it might come to the worst case scenario that every ArrayList expands
- to way more size than actually needed, resulting in memory wasted for empty elements
- Furthermore, in {@link FileDataSetContainer#getAllEntriesSorted()} the sorting likely also uses additional memory.
-
- One solution to the ArrayList problem would be having a single global fixed-size list
- which would then need some more logic to be matched to a corresponding file.
+ In the worst case scenario the copying from cache to file could increase memory consumption by 100%
 
  Given more time one could certainly optimize some things here :)
  */
@@ -33,10 +30,10 @@ public class FileDataSet {
 
     private static final Logger LOG = LoggerFactory.getLogger(FileDataSet.class);
 
-    private final int maxCacheOrFileEntryCount;
+    private final int maxCacheEntryCount;
+    private final int maxFileEntryCount;
     private final List<FileDataSetContainer> containers = new ArrayList<>();
-
-    private int totalCacheEntryCount = 0;
+    private final DoubleList memoryCache;
 
     public FileDataSet(String fileDir, int maxDataInMemoryKb) {
         File dir = new File(fileDir);
@@ -51,21 +48,25 @@ public class FileDataSet {
             throw new FileDataSetException("Cannot store more entries than an Integer can index for now");
         }
 
-        maxCacheOrFileEntryCount = (int) entryCount / MAGIC_MEMORY_SPLIT_FACTOR;
+        maxCacheEntryCount = (int) entryCount / MAGIC_MEMORY_SPLIT_FACTOR;
+        maxFileEntryCount = (int) entryCount - maxCacheEntryCount;
         containers.add(new FileDataSetContainer(fileDir, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
-        LOG.info("Creating dataset that can cache {} doubles in memory", maxCacheOrFileEntryCount);
+        LOG.info("Creating dataset that can cache {} doubles in memory and {} in files",
+                maxCacheEntryCount, maxFileEntryCount);
+
+        memoryCache = new DoubleArrayList(maxCacheEntryCount);
     }
 
     public void addNumber(double number) {
         LOG.trace("Adding number: {}", number);
-        if (totalCacheEntryCount >= maxCacheOrFileEntryCount) {
+        if (memoryCache.size() >= maxCacheEntryCount-1) {
             LOG.debug("Max Cache Count hit - Total entry count: {}", getTotalSize());
             storeLargestContainer();
         }
 
         var matchingContainer = getMatchingContainer(number);
-        matchingContainer.add(number);
-        totalCacheEntryCount++;
+        matchingContainer.increaseCacheEntryCount();
+        memoryCache.add(number);
     }
 
     private FileDataSetContainer getMatchingContainer(double number) {
@@ -77,15 +78,16 @@ public class FileDataSet {
 
     private void storeLargestContainer() {
         var maxDataContainer = getLargestContainer();
-        totalCacheEntryCount -= maxDataContainer.getCacheNumberCount();
+        var cacheData = getCacheEntriesForContainer(maxDataContainer);
+        memoryCache.removeAll(cacheData);
 
-        if (maxDataContainer.getTotalEntryCount() <= maxCacheOrFileEntryCount) {
-            maxDataContainer.writeToFile();
+        if (maxDataContainer.getTotalEntryCount() > maxFileEntryCount) {
+            splitAndStoreContainer(maxDataContainer, cacheData);
         } else {
-            splitContainer(maxDataContainer);
+            maxDataContainer.mergeAndWriteToFile(cacheData);
         }
 
-        LOG.debug("Reduced cache to: {} entries", totalCacheEntryCount);
+        LOG.debug("Reduced cache to: {} entries", memoryCache.size());
     }
 
     private FileDataSetContainer getLargestContainer() {
@@ -94,15 +96,18 @@ public class FileDataSet {
                 .orElseThrow(() -> new IllegalStateException("Cache not initialized"));
     }
 
-    private void splitContainer(FileDataSetContainer targetContainer) {
-        var splitResult = targetContainer.splitInHalf();
+    private DoubleList getCacheEntriesForContainer(FileDataSetContainer container) {
+        return new DoubleArrayList(memoryCache.doubleStream()
+                .filter(d -> d >= container.getInclusiveMin() && d <= container.getInclusiveMax())
+                .iterator());
+    }
+
+    private void splitAndStoreContainer(FileDataSetContainer targetContainer, DoubleList cacheData) {
+        var splitResult = targetContainer.splitInHalf(cacheData);
         var containerIndex = containers.indexOf(targetContainer);
 
         containers.add(containerIndex, splitResult.getUpperContainer());
         containers.add(containerIndex, splitResult.getLowerContainer());
-
-        splitResult.getUpperContainer().writeToFile();
-        splitResult.getLowerContainer().writeToFile();
 
         LOG.debug("Split data file {} into {} and {}", targetContainer, splitResult.getLowerContainer(), splitResult.getUpperContainer());
 
@@ -120,7 +125,9 @@ public class FileDataSet {
             int entryCounter = 0;
             for (var container : containers) {
                 if (entryCounter + container.getTotalEntryCount() > index) {
-                    return container.getAllEntriesSorted().getDouble(index - entryCounter);
+                    var cacheData = getCacheEntriesForContainer(container);
+                    var mergedData = container.getMergedStorageData(cacheData);
+                    return mergedData.getDouble(index - entryCounter);
                 }
                 entryCounter += container.getTotalEntryCount();
             }
@@ -133,7 +140,6 @@ public class FileDataSet {
         for (var container : containers) {
             container.deleteLocalStorage();
         }
-        totalCacheEntryCount = 0;
         containers.clear();
     }
 }
